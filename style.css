@@ -3,88 +3,101 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 16px;
-  background: #FFF8DC; /* light yellow background */
-  color: #003366; /* dark blue text */
+  background: #FFF8DC; /* light yellow */
+  color: #003366; /* dark blue */
+  margin: 0;
+  padding: 0;
 }
 
 .container {
+  width: 95%;
   max-width: 900px;
-  margin: auto;
+  margin: 10px auto;
   background: #FFEF99; /* soft yellow card background */
-  padding: 20px;
+  padding: 15px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+/* --- Logo --- */
 .logo {
   display: block;
   margin: auto;
-  width: 120px;
+  width: 100px;
 }
 
-/* --- Buttons --- */
 button {
-  padding: 10px 18px;
-  margin: 5px;
+  padding: 12px 18px;
+  margin: 5px 2px;
   cursor: pointer;
-  background: #1E90FF; /* bright blue */
+  background: #1E90FF;
   border: none;
   color: white;
   border-radius: 5px;
   font-weight: bold;
   font-size: 16px;
+  width: auto;
+  min-width: 80px;
   transition: background 0.2s;
 }
 
 button:hover {
-  background: #104E8B; /* darker blue on hover */
+  background: #104E8B;
 }
 
-/* --- Player input rows --- */
+/* --- Player rows and matches --- */
 .player-row, .match {
   margin: 5px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 input {
-  padding: 8px;
-  width: 80px; /* bigger input for scores */
+  padding: 10px;
   font-size: 16px;
   text-align: center;
+  flex: 1 1 60px;
+  min-width: 50px;
 }
 
 /* --- Teams --- */
 .team {
-  border: 1px solid #1E90FF; /* blue border */
+  border: 1px solid #1E90FF;
   padding: 15px;
   margin: 5px;
-  display: inline-block;
-  width: 240px;
-  background: #FFFF99; /* light yellow */
+  background: #FFFF99;
   border-radius: 8px;
-  font-size: 18px; /* bigger font for player names */
+  font-size: 18px;
+  display: inline-block;
+  width: 45%;
+  min-width: 160px;
+  box-sizing: border-box;
 }
 
 .team span.men {
-  color: #1E90FF; /* blue for men */
+  color: #1E90FF;
 }
 
 .team span.women {
-  color: #FF4500; /* red for women */
+  color: #FF4500;
 }
 
-/* --- Table / standings --- */
+/* --- Table / Standings --- */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
   font-size: 16px;
+  overflow-x: auto;
+  display: block;
 }
 
 th, td {
-  border: 1px solid #1E90FF; /* blue table borders */
+  border: 1px solid #1E90FF;
   padding: 6px;
   text-align: center;
-  background: #FFFFCC; /* soft yellow cells */
+  background: #FFFFCC;
 }
 
 /* --- Modal --- */
@@ -100,11 +113,26 @@ th, td {
 }
 
 .modal-content {
-  background: #FFEF99; /* yellow modal background */
+  background: #FFEF99;
   padding: 20px;
   border-radius: 10px;
-  width: 450px;
-  max-width: 90%;
-  color: #003366; /* dark blue text */
+  width: 90%;
+  max-width: 450px;
+  color: #003366;
   font-size: 16px;
+}
+
+/* --- Responsive adjustments --- */
+@media (max-width: 768px) {
+  .team {
+    width: 100%; /* Stack teams vertically on smaller screens */
+  }
+
+  input {
+    flex: 1 1 100%; /* inputs full width on small screens */
+  }
+
+  button {
+    width: 100%; /* buttons full width for touch */
+  }
 }
