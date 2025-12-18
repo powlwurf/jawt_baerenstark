@@ -1,27 +1,68 @@
-let players = JSON.parse(localStorage.getItem("players")).map(p => ({
-  ...p,
-  stars: 0,
-  pointDiff: 0,
-  gamesPlayed: 0,
-  lastTeammates: []
-}));
 
+// --- Globals ---
+let players = [];
 let currentTeams = [];
 let currentMatches = [];
 let showStandings = false;
+let pendingMatch = null;
 
-/* ---------- Helpers ---------- */
+// --- Player Registration ---
+function addPlayer() {
+  const div = document.createElement("div");
+  div.className = "player-row";
+  div.innerHTML = `
+    <input placeholder="Name" />
+    <select>
+      <option value="M">Man</option>
+      <option value="F">Woman</option>
+    </select>
+  `;
+  document.getElementById("playerList").appendChild(div);
+}
+
+function startTournament() {
+  const rows = document.querySelectorAll(".player-row");
+  players = [];
+  rows.forEach(row => {
+    const name = row.children[0].value.trim();
+    const gender = row.children[1].value;
+    if (name) players.push({
+      name,
+      gender,
+      stars: 0,
+      pointDiff: 0,
+      gamesPlayed: 0,
+      lastTeammates: []
+    });
+  });
+
+  if (players.length < 10 || players.length > 30) {
+    alert("Please register between 10 and 30 players.");
+    return;
+  }
+
+  // Switch to tournament view
+  document.getElementById("playerRegistration").style.display = "none";
+  document.getElementById("tournamentControls").style.display = "block";
+  document.getElementById("teamsTitle").style.display = "block";
+  document.getElementById("matchesTitle").style.display = "block";
+  document.getElementById("pageTitle").textContent = "Volleyball Tournament";
+
+  // Clear previous data
+  currentTeams = [];
+  currentMatches = [];
+  renderStandings();
+  document.getElementById("standings").style.display = "none";
+
+  renderTeams();
+  renderMatches();
+}
+
+// --- Team Building ---
 function shuffle(arr) {
   return arr.sort(() => Math.random() - 0.5);
 }
 
-function toggleStandings() {
-  showStandings = !showStandings;
-  document.getElementById("standings").style.display =
-    showStandings ? "block" : "none";
-}
-
-/* ---------- Team Builder ---------- */
 function buildTeams() {
   const men = shuffle(players.filter(p => p.gender === "M"));
   const women = shuffle(players.filter(p => p.gender === "F"));
@@ -80,7 +121,7 @@ function buildTeams() {
   });
 }
 
-/* ---------- Round ---------- */
+// --- Start a Round ---
 function startRound() {
   buildTeams();
 
@@ -92,15 +133,19 @@ function startRound() {
 
   renderTeams();
   renderMatches();
+
+  // Hide standings
+  document.getElementById("standings").style.display = "none";
+  showStandings = false;
 }
 
-/* ---------- Rendering ---------- */
+// --- Rendering ---
 function renderTeams() {
   document.getElementById("teams").innerHTML =
     currentTeams.map(t => `
       <div class="team">
         <strong>Team ${t.id}</strong><br>
-        ${t.players.map(p => p.name).join("<br>")}
+        ${t.players.map(p => `${p.name} (${p.gender})`).join("<br>")}
       </div>
     `).join("");
 }
@@ -110,9 +155,9 @@ function renderMatches() {
     currentMatches.map((m, i) => `
       <div class="match">
         Team ${m[0].id}
-        <input id="a${i}">
+        <input id="a${i}" type="number" min="0" placeholder="0" />
         :
-        <input id="b${i}">
+        <input id="b${i}" type="number" min="0" placeholder="0" />
         Team ${m[1].id}
         <button onclick="finishMatch(${i})">Save</button>
       </div>
@@ -139,11 +184,36 @@ function renderStandings() {
   `;
 }
 
-/* ---------- Match result ---------- */
+// --- Finish match and show confirmation ---
 function finishMatch(i) {
   const [A, B] = currentMatches[i];
   const a = Number(document.getElementById(`a${i}`).value);
   const b = Number(document.getElementById(`b${i}`).value);
+
+  if (isNaN(a) || isNaN(b)) {
+    alert("Please enter valid scores");
+    return;
+  }
+
+  // Store pending match
+  pendingMatch = { index: i, A, B, a, b };
+
+  // Show modal
+  const detailsDiv = document.getElementById("confirmDetails");
+  detailsDiv.innerHTML = `
+    <strong>Team ${A.id}:</strong> ${A.players.map(p => p.name).join(", ")} <br>
+    <strong>Score:</strong> ${a} <br><br>
+    <strong>Team ${B.id}:</strong> ${B.players.map(p => p.name).join(", ")} <br>
+    <strong>Score:</strong> ${b}
+  `;
+  document.getElementById("confirmModal").style.display = "flex";
+}
+
+// --- Confirm modal save ---
+function confirmSave() {
+  if (!pendingMatch) return;
+
+  const { A, B, a, b } = pendingMatch;
 
   let sA = 0, sB = 0;
   if (a > b) sA = 2;
@@ -165,5 +235,24 @@ function finishMatch(i) {
   });
 
   renderStandings();
-  renderMatches(); // clears inputs
+
+  // Clear inputs
+  document.getElementById(`a${pendingMatch.index}`).value = "";
+  document.getElementById(`b${pendingMatch.index}`).value = "";
+
+  document.getElementById("confirmModal").style.display = "none";
+  pendingMatch = null;
+}
+
+// --- Discard modal ---
+function discardSave() {
+  document.getElementById("confirmModal").style.display = "none";
+  pendingMatch = null;
+}
+
+// --- Toggle standings ---
+function toggleStandings() {
+  showStandings = !showStandings;
+  document.getElementById("standings").style.display =
+    showStandings ? "block" : "none";
 }

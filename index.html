@@ -1,56 +1,56 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Volleyball Tournament</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <div class="container">
-  <img src="bear-logo.jpg" class="logo" alt="Logo">
 
-  <h1>Register Players</h1>
+  <img src="bear-logo.jpg" class="logo" alt="Logo" />
 
-  <div id="playerList"></div>
+  <h1 id="pageTitle">Register Players</h1>
 
-  <button onclick="addPlayer()">Add Player</button>
-  <button onclick="startTournament()">Start Tournament</button>
+  <!-- Player Registration -->
+  <div id="playerRegistration">
+    <div id="playerList"></div>
+    <button onclick="addPlayer()">Add Player</button>
+    <button onclick="startTournament()">Start Tournament</button>
+  </div>
+
+  <!-- Tournament Controls -->
+  <div id="tournamentControls" style="display:none;">
+    <button onclick="startRound()">Start New Round</button>
+    <button onclick="toggleStandings()">Toggle Standings</button>
+  </div>
+
+  <h2 id="teamsTitle" style="display:none;">Teams</h2>
+  <div id="teams"></div>
+
+  <h2 id="matchesTitle" style="display:none;">Matches</h2>
+  <div id="matches"></div>
+
+  <div id="standings" style="display:none;"></div>
+
 </div>
 
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2>Confirm Match Result</h2>
+    <div id="confirmDetails"></div>
+    <button onclick="confirmSave()">Confirm</button>
+    <button onclick="discardSave()">Discard</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
 <script>
-  function addPlayer() {
-    const div = document.createElement("div");
-    div.className = "player-row";
-    div.innerHTML = `
-      <input placeholder="Name">
-      <select>
-        <option value="M">Man</option>
-        <option value="F">Woman</option>
-      </select>
-    `;
-    document.getElementById("playerList").appendChild(div);
-  }
-
-  function startTournament() {
-    const players = [];
-    document.querySelectorAll(".player-row").forEach(row => {
-      const name = row.children[0].value.trim();
-      const gender = row.children[1].value;
-      if (name) players.push({ name, gender });
-    });
-
-    if (players.length < 10 || players.length > 30) {
-      alert("Please register between 10 and 30 players.");
-      return;
-    }
-
-    localStorage.setItem("players", JSON.stringify(players));
-    window.location.href = "tournament.html";
-  }
-
-  // start with 10 rows
-  for (let i = 0; i < 10; i++) addPlayer();
+  // Initialize 10 default player rows
+  for(let i=0; i<10; i++) addPlayer();
 </script>
 
 </body>
