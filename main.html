@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Volleyball Tournament</title>
+  <style>
+    table { border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; }
+  </style>
+</head>
+<body>
+
+<h2>Players (comma separated)</h2>
+<input id="playersInput" style="width:400px"
+       value="Alice,Bob,Charlie,David,Eva,Frank,Grace,Helen,Ian,Jane">
+<br><br>
+
+<button onclick="startRound()">Start New Round</button>
+
+<div id="matches"></div>
+<div id="standings"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
