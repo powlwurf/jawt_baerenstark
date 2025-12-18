@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tournament</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <img src="bear-logo.jpg" class="logo" alt="Logo">
+
+  <h1>Volleyball Tournament</h1>
+
+  <button onclick="startRound()">Start New Round</button>
+  <button onclick="toggleStandings()">Toggle Standings</button>
+
+  <h2>Teams</h2>
+  <div id="teams"></div>
+
+  <h2>Matches</h2>
+  <div id="matches"></div>
+
+  <div id="standings" style="display:none"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

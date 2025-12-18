@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Volleyball Tournament</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <img src="bear-logo.jpg" class="logo" alt="Logo">
+
+  <h1>Register Players</h1>
+
+  <div id="playerList"></div>
+
+  <button onclick="addPlayer()">Add Player</button>
+  <button onclick="startTournament()">Start Tournament</button>
+</div>
+
+<script>
+  function addPlayer() {
+    const div = document.createElement("div");
+    div.className = "player-row";
+    div.innerHTML = `
+      <input placeholder="Name">
+      <select>
+        <option value="M">Man</option>
+        <option value="F">Woman</option>
+      </select>
+    `;
+    document.getElementById("playerList").appendChild(div);
+  }
+
+  function startTournament() {
+    const players = [];
+    document.querySelectorAll(".player-row").forEach(row => {
+      const name = row.children[0].value.trim();
+      const gender = row.children[1].value;
+      if (name) players.push({ name, gender });
+    });
+
+    if (players.length < 10 || players.length > 30) {
+      alert("Please register between 10 and 30 players.");
+      return;
+    }
+
+    localStorage.setItem("players", JSON.stringify(players));
+    window.location.href = "tournament.html";
+  }
+
+  // start with 10 rows
+  for (let i = 0; i < 10; i++) addPlayer();
+</script>
+
+</body>
+</html>

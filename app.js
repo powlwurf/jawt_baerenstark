@@ -1,51 +1,89 @@
-let players = [];
+let players = JSON.parse(localStorage.getItem("players")).map(p => ({
+  ...p,
+  stars: 0,
+  pointDiff: 0,
+  gamesPlayed: 0,
+  lastTeammates: []
+}));
+
 let currentTeams = [];
 let currentMatches = [];
+let showStandings = false;
 
 /* ---------- Helpers ---------- */
 function shuffle(arr) {
   return arr.sort(() => Math.random() - 0.5);
 }
 
-/* ---------- Initialization ---------- */
-function initPlayers(names) {
-  players = names.map(name => ({
-    name,
-    stars: 0,
-    pointDiff: 0,
-    gamesPlayed: 0
-  }));
+function toggleStandings() {
+  showStandings = !showStandings;
+  document.getElementById("standings").style.display =
+    showStandings ? "block" : "none";
 }
 
-/* ---------- Round Logic ---------- */
-function startRound() {
-  if (players.length === 0) {
-    const names = document
-      .getElementById("playersInput")
-      .value.split(",")
-      .map(n => n.trim())
-      .filter(Boolean);
+/* ---------- Team Builder ---------- */
+function buildTeams() {
+  const men = shuffle(players.filter(p => p.gender === "M"));
+  const women = shuffle(players.filter(p => p.gender === "F"));
 
-    if (names.length < 10 || names.length > 30) {
-      alert("Please enter between 10 and 30 players.");
-      return;
-    }
-
-    initPlayers(names);
-  }
-
-  // Create teams
-  const shuffled = shuffle([...players]);
   currentTeams = Array.from({ length: 6 }, (_, i) => ({
     id: i + 1,
-    players: []
+    players: [],
+    menSlots: 0,
+    womenSlots: 0
   }));
 
-  shuffled.forEach((p, i) => {
-    currentTeams[i % 6].players.push(p);
+  const menBase = Math.floor(men.length / 6);
+  const womenBase = Math.floor(women.length / 6);
+  let extraMen = men.length % 6;
+  let extraWomen = women.length % 6;
+
+  currentTeams.forEach(t => {
+    t.menSlots = menBase + (extraMen-- > 0 ? 1 : 0);
+    t.womenSlots = womenBase + (extraWomen-- > 0 ? 1 : 0);
   });
 
-  // Create matches
+  function penalty(player, team) {
+    return team.players.reduce(
+      (sum, p) => sum + (player.lastTeammates.includes(p.name) ? 10 : 0),
+      0
+    );
+  }
+
+  function assign(pool, slotKey) {
+    pool.forEach(player => {
+      let best = null;
+      let bestScore = Infinity;
+
+      currentTeams.forEach(team => {
+        if (team[slotKey] <= 0) return;
+        const score = penalty(player, team);
+        if (score < bestScore) {
+          bestScore = score;
+          best = team;
+        }
+      });
+
+      if (best) {
+        best.players.push(player);
+        best[slotKey]--;
+      }
+    });
+  }
+
+  assign(women, "womenSlots");
+  assign(men, "menSlots");
+
+  currentTeams.forEach(t => {
+    delete t.menSlots;
+    delete t.womenSlots;
+  });
+}
+
+/* ---------- Round ---------- */
+function startRound() {
+  buildTeams();
+
   currentMatches = [
     [currentTeams[0], currentTeams[1]],
     [currentTeams[2], currentTeams[3]],
@@ -58,86 +96,74 @@ function startRound() {
 
 /* ---------- Rendering ---------- */
 function renderTeams() {
-  const div = document.getElementById("teams");
-  div.innerHTML = "";
-
-  currentTeams.forEach(team => {
-    div.innerHTML += `
+  document.getElementById("teams").innerHTML =
+    currentTeams.map(t => `
       <div class="team">
-        <strong>Team ${team.id}</strong><br>
-        ${team.players.map(p => p.name).join("<br>")}
+        <strong>Team ${t.id}</strong><br>
+        ${t.players.map(p => p.name).join("<br>")}
       </div>
-    `;
-  });
+    `).join("");
 }
 
 function renderMatches() {
-  const div = document.getElementById("matches");
-  div.innerHTML = "";
-
-  currentMatches.forEach((m, i) => {
-    div.innerHTML += `
-      <div>
-        Team ${m[0].id} vs Team ${m[1].id}
-        <input id="a${i}" type="number" value="21">
+  document.getElementById("matches").innerHTML =
+    currentMatches.map((m, i) => `
+      <div class="match">
+        Team ${m[0].id}
+        <input id="a${i}">
         :
-        <input id="b${i}" type="number" value="18">
+        <input id="b${i}">
+        Team ${m[1].id}
         <button onclick="finishMatch(${i})">Save</button>
       </div>
-    `;
-  });
+    `).join("");
 }
 
 function renderStandings() {
-  const div = document.getElementById("standings");
-
   const sorted = [...players].sort(
     (a, b) => b.stars - a.stars || b.pointDiff - a.pointDiff
   );
 
-  div.innerHTML = `
-    <h3>Standings</h3>
+  document.getElementById("standings").innerHTML = `
+    <h2>Standings</h2>
     <table>
-      <tr>
-        <th>Player</th>
-        <th>Stars</th>
-        <th>Point Diff</th>
-        <th>Games</th>
-      </tr>
+      <tr><th>Name</th><th>Stars</th><th>Diff</th></tr>
       ${sorted.map(p => `
         <tr>
           <td>${p.name}</td>
           <td>${p.stars}</td>
           <td>${p.pointDiff}</td>
-          <td>${p.gamesPlayed}</td>
         </tr>
       `).join("")}
     </table>
   `;
 }
 
-/* ---------- Match Result ---------- */
+/* ---------- Match result ---------- */
 function finishMatch(i) {
-  const [teamA, teamB] = currentMatches[i];
-  const scoreA = Number(document.getElementById(`a${i}`).value);
-  const scoreB = Number(document.getElementById(`b${i}`).value);
+  const [A, B] = currentMatches[i];
+  const a = Number(document.getElementById(`a${i}`).value);
+  const b = Number(document.getElementById(`b${i}`).value);
 
-  let starsA = 0, starsB = 0;
-  if (scoreA > scoreB) starsA = 2;
-  else if (scoreB > scoreA) starsB = 2;
-  else starsA = starsB = 1;
+  let sA = 0, sB = 0;
+  if (a > b) sA = 2;
+  else if (b > a) sB = 2;
+  else sA = sB = 1;
 
-  teamA.players.forEach(p => {
-    p.stars += starsA;
-    p.pointDiff += scoreA - scoreB;
+  A.players.forEach(p => {
+    p.stars += sA;
+    p.pointDiff += a - b;
     p.gamesPlayed++;
+    p.lastTeammates = A.players.map(x => x.name);
   });
 
-  teamB.players.forEach(p => {
-    p.stars += starsB;
-    p.pointDiff += scoreB - scoreA;
+  B.players.forEach(p => {
+    p.stars += sB;
+    p.pointDiff += b - a;
     p.gamesPlayed++;
+    p.lastTeammates = B.players.map(x => x.name);
   });
 
   renderStandings();
+  renderMatches(); // clears inputs
 }
