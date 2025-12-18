@@ -4,7 +4,7 @@ let players = [];
 let currentTeams = [];
 let currentMatches = [];
 let showStandings = false;
-let pendingMatch = null;
+let pendingRound = null;
 
 // --- Player Registration ---
 function addPlayer() {
@@ -48,7 +48,6 @@ function startTournament() {
   document.getElementById("matchesTitle").style.display = "block";
   document.getElementById("pageTitle").textContent = "Volleyball Tournament";
 
-  // Clear previous data
   currentTeams = [];
   currentMatches = [];
   renderStandings();
@@ -59,70 +58,63 @@ function startTournament() {
 }
 
 // --- Team Building ---
-function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
-}
+function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
 
 function buildTeams() {
-  const men = shuffle(players.filter(p => p.gender === "M"));
-  const women = shuffle(players.filter(p => p.gender === "F"));
+  const totalPlayers = players.length;
+  const baseSize = Math.floor(totalPlayers / 6);
+  let extra = totalPlayers % 6;
 
+  // Shuffle players
+  const shuffledPlayers = shuffle(players);
+
+  // Initialize 6 empty teams
   currentTeams = Array.from({ length: 6 }, (_, i) => ({
     id: i + 1,
-    players: [],
-    menSlots: 0,
-    womenSlots: 0
+    players: []
   }));
 
-  const menBase = Math.floor(men.length / 6);
-  const womenBase = Math.floor(women.length / 6);
-  let extraMen = men.length % 6;
-  let extraWomen = women.length % 6;
+  let teamIndex = 0;
 
-  currentTeams.forEach(t => {
-    t.menSlots = menBase + (extraMen-- > 0 ? 1 : 0);
-    t.womenSlots = womenBase + (extraWomen-- > 0 ? 1 : 0);
+  // Distribute players evenly
+  shuffledPlayers.forEach(player => {
+    currentTeams[teamIndex].players.push(player);
+
+    // Move to next team
+    teamIndex = (teamIndex + 1) % 6;
   });
 
-  function penalty(player, team) {
-    return team.players.reduce(
-      (sum, p) => sum + (player.lastTeammates.includes(p.name) ? 10 : 0),
-      0
-    );
-  }
-
-  function assign(pool, slotKey) {
-    pool.forEach(player => {
-      let best = null;
-      let bestScore = Infinity;
-
-      currentTeams.forEach(team => {
-        if (team[slotKey] <= 0) return;
-        const score = penalty(player, team);
-        if (score < bestScore) {
-          bestScore = score;
-          best = team;
+  // Optional: Ensure gender mix by swapping if any team has all same gender
+  // Count men and women per team
+  currentTeams.forEach(team => {
+    const men = team.players.filter(p => p.gender === "M");
+    const women = team.players.filter(p => p.gender === "F");
+    if (men.length === 0 || women.length === 0) {
+      // Find a player in another team to swap
+      for (let other of currentTeams) {
+        if (other === team) continue;
+        const swapCandidate = other.players.find(p => p.gender !== team.players[0].gender);
+        if (swapCandidate) {
+          // Swap
+          const toSwap = team.players[0];
+          team.players[0] = swapCandidate;
+          const index = other.players.indexOf(swapCandidate);
+          other.players[index] = toSwap;
+          break;
         }
-      });
-
-      if (best) {
-        best.players.push(player);
-        best[slotKey]--;
       }
-    });
-  }
-
-  assign(women, "womenSlots");
-  assign(men, "menSlots");
-
-  currentTeams.forEach(t => {
-    delete t.menSlots;
-    delete t.womenSlots;
+    }
   });
 }
 
 // --- Start a Round ---
 function startRound() {
+  document.getElementById("startRoundModal").style.display = "flex";
+}
+
+// Called if confirmed
+function confirmStartRound() {
+  document.getElementById("startRoundModal").style.display = "none";
   buildTeams();
 
   currentMatches = [
@@ -133,10 +125,16 @@ function startRound() {
 
   renderTeams();
   renderMatches();
+  document.getElementById("saveAllButton").style.display = "inline-block";
 
-  // Hide standings
+  // Hide standings temporarily
   document.getElementById("standings").style.display = "none";
   showStandings = false;
+}
+
+// Called if canceled
+function cancelStartRound() {
+  document.getElementById("startRoundModal").style.display = "none";
 }
 
 // --- Rendering ---
@@ -145,7 +143,11 @@ function renderTeams() {
     currentTeams.map(t => `
       <div class="team">
         <strong>Team ${t.id}</strong><br>
-        ${t.players.map(p => `${p.name} (${p.gender})`).join("<br>")}
+        ${t.players.map(p => `
+          <span class="${p.gender === "M" ? 'men' : 'women'}">
+            ${p.name}
+          </span>
+        `).join("<br>")}
       </div>
     `).join("");
 }
@@ -154,12 +156,10 @@ function renderMatches() {
   document.getElementById("matches").innerHTML =
     currentMatches.map((m, i) => `
       <div class="match">
-        Team ${m[0].id}
-        <input id="a${i}" type="number" min="0" placeholder="0" />
+        Team ${m[0].id} <input id="a${i}" type="number" min="0" placeholder="0" />
         :
         <input id="b${i}" type="number" min="0" placeholder="0" />
         Team ${m[1].id}
-        <button onclick="finishMatch(${i})">Save</button>
       </div>
     `).join("");
 }
@@ -184,70 +184,76 @@ function renderStandings() {
   `;
 }
 
-// --- Finish match and show confirmation ---
-function finishMatch(i) {
-  const [A, B] = currentMatches[i];
-  const a = Number(document.getElementById(`a${i}`).value);
-  const b = Number(document.getElementById(`b${i}`).value);
-
-  if (isNaN(a) || isNaN(b)) {
-    alert("Please enter valid scores");
-    return;
+// --- Save All Matches with confirmation ---
+function saveAllMatches() {
+  const scores = [];
+  for (let i = 0; i < currentMatches.length; i++) {
+    const a = Number(document.getElementById(`a${i}`).value);
+    const b = Number(document.getElementById(`b${i}`).value);
+    if (isNaN(a) || isNaN(b)) {
+      alert("Please enter valid scores for all matches.");
+      return;
+    }
+    scores.push({ a, b });
   }
 
-  // Store pending match
-  pendingMatch = { index: i, A, B, a, b };
+  // Store pending round
+  pendingRound = scores;
 
   // Show modal
   const detailsDiv = document.getElementById("confirmDetails");
-  detailsDiv.innerHTML = `
-    <strong>Team ${A.id}:</strong> ${A.players.map(p => p.name).join(", ")} <br>
-    <strong>Score:</strong> ${a} <br><br>
-    <strong>Team ${B.id}:</strong> ${B.players.map(p => p.name).join(", ")} <br>
-    <strong>Score:</strong> ${b}
-  `;
+  let html = "";
+  currentMatches.forEach((m, i) => {
+    html += `
+      <strong>Match ${i+1}:</strong><br>
+      Team ${m[0].id}: ${m[0].players.map(p => p.name).join(", ")} - Score: ${scores[i].a}<br>
+      Team ${m[1].id}: ${m[1].players.map(p => p.name).join(", ")} - Score: ${scores[i].b}<br><br>
+    `;
+  });
+  detailsDiv.innerHTML = html;
   document.getElementById("confirmModal").style.display = "flex";
 }
 
-// --- Confirm modal save ---
-function confirmSave() {
-  if (!pendingMatch) return;
+// --- Confirm save all ---
+function confirmSaveAll() {
+  if (!pendingRound) return;
 
-  const { A, B, a, b } = pendingMatch;
+  currentMatches.forEach((m, i) => {
+    const { a, b } = pendingRound[i];
+    let sA = 0, sB = 0;
+    if (a > b) sA = 2;
+    else if (b > a) sB = 2;
+    else sA = sB = 1;
 
-  let sA = 0, sB = 0;
-  if (a > b) sA = 2;
-  else if (b > a) sB = 2;
-  else sA = sB = 1;
+    m[0].players.forEach(p => {
+      p.stars += sA;
+      p.pointDiff += a - b;
+      p.gamesPlayed++;
+      p.lastTeammates = m[0].players.map(x => x.name);
+    });
 
-  A.players.forEach(p => {
-    p.stars += sA;
-    p.pointDiff += a - b;
-    p.gamesPlayed++;
-    p.lastTeammates = A.players.map(x => x.name);
-  });
+    m[1].players.forEach(p => {
+      p.stars += sB;
+      p.pointDiff += b - a;
+      p.gamesPlayed++;
+      p.lastTeammates = m[1].players.map(x => x.name);
+    });
 
-  B.players.forEach(p => {
-    p.stars += sB;
-    p.pointDiff += b - a;
-    p.gamesPlayed++;
-    p.lastTeammates = B.players.map(x => x.name);
+    // Clear inputs
+    document.getElementById(`a${i}`).value = "";
+    document.getElementById(`b${i}`).value = "";
   });
 
   renderStandings();
 
-  // Clear inputs
-  document.getElementById(`a${pendingMatch.index}`).value = "";
-  document.getElementById(`b${pendingMatch.index}`).value = "";
-
   document.getElementById("confirmModal").style.display = "none";
-  pendingMatch = null;
+  pendingRound = null;
 }
 
 // --- Discard modal ---
-function discardSave() {
+function discardSaveAll() {
   document.getElementById("confirmModal").style.display = "none";
-  pendingMatch = null;
+  pendingRound = null;
 }
 
 // --- Toggle standings ---

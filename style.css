@@ -1,15 +1,19 @@
 
+/* --- Body and container --- */
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  background: #FFF8DC; /* light yellow background */
+  color: #003366; /* dark blue text */
 }
 
 .container {
   max-width: 900px;
   margin: auto;
-  background: white;
+  background: #FFEF99; /* soft yellow card background */
   padding: 20px;
   border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .logo {
@@ -18,36 +22,72 @@ body {
   width: 120px;
 }
 
+/* --- Buttons --- */
 button {
-  padding: 8px 14px;
+  padding: 10px 18px;
   margin: 5px;
   cursor: pointer;
+  background: #1E90FF; /* bright blue */
+  border: none;
+  color: white;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  transition: background 0.2s;
 }
 
+button:hover {
+  background: #104E8B; /* darker blue on hover */
+}
+
+/* --- Player input rows --- */
 .player-row, .match {
   margin: 5px 0;
 }
 
-.team {
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin: 5px;
-  display: inline-block;
-  width: 200px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
+input {
+  padding: 8px;
+  width: 80px; /* bigger input for scores */
+  font-size: 16px;
   text-align: center;
 }
 
-/* Modal styles */
+/* --- Teams --- */
+.team {
+  border: 1px solid #1E90FF; /* blue border */
+  padding: 15px;
+  margin: 5px;
+  display: inline-block;
+  width: 240px;
+  background: #FFFF99; /* light yellow */
+  border-radius: 8px;
+  font-size: 18px; /* bigger font for player names */
+}
+
+.team span.men {
+  color: #1E90FF; /* blue for men */
+}
+
+.team span.women {
+  color: #FF4500; /* red for women */
+}
+
+/* --- Table / standings --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+th, td {
+  border: 1px solid #1E90FF; /* blue table borders */
+  padding: 6px;
+  text-align: center;
+  background: #FFFFCC; /* soft yellow cells */
+}
+
+/* --- Modal --- */
 .modal {
   position: fixed;
   top: 0; left: 0;
@@ -60,9 +100,11 @@ th, td {
 }
 
 .modal-content {
-  background: #fff;
+  background: #FFEF99; /* yellow modal background */
   padding: 20px;
   border-radius: 10px;
-  width: 400px;
+  width: 450px;
   max-width: 90%;
+  color: #003366; /* dark blue text */
+  font-size: 16px;
 }
