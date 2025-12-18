@@ -1,10 +1,13 @@
 let players = [];
+let currentTeams = [];
+let currentMatches = [];
 
-// Shuffle helper
+/* ---------- Helpers ---------- */
 function shuffle(arr) {
   return arr.sort(() => Math.random() - 0.5);
 }
 
+/* ---------- Initialization ---------- */
 function initPlayers(names) {
   players = names.map(name => ({
     name,
@@ -14,80 +17,80 @@ function initPlayers(names) {
   }));
 }
 
+/* ---------- Round Logic ---------- */
 function startRound() {
   if (players.length === 0) {
     const names = document
       .getElementById("playersInput")
       .value.split(",")
-      .map(n => n.trim());
+      .map(n => n.trim())
+      .filter(Boolean);
+
+    if (names.length < 10 || names.length > 30) {
+      alert("Please enter between 10 and 30 players.");
+      return;
+    }
+
     initPlayers(names);
   }
 
+  // Create teams
   const shuffled = shuffle([...players]);
-  const teams = Array.from({ length: 6 }, (_, i) => ({
+  currentTeams = Array.from({ length: 6 }, (_, i) => ({
     id: i + 1,
     players: []
   }));
 
   shuffled.forEach((p, i) => {
-    teams[i % 6].players.push(p);
+    currentTeams[i % 6].players.push(p);
   });
 
-  const matches = [
-    [teams[0], teams[1]],
-    [teams[2], teams[3]],
-    [teams[4], teams[5]]
+  // Create matches
+  currentMatches = [
+    [currentTeams[0], currentTeams[1]],
+    [currentTeams[2], currentTeams[3]],
+    [currentTeams[4], currentTeams[5]]
   ];
 
-  renderMatches(matches);
+  renderTeams();
+  renderMatches();
 }
 
-function renderMatches(matches) {
-  const div = document.getElementById("matches");
-  div.innerHTML = "<h3>Matches</h3>";
+/* ---------- Rendering ---------- */
+function renderTeams() {
+  const div = document.getElementById("teams");
+  div.innerHTML = "";
 
-  matches.forEach((m, i) => {
+  currentTeams.forEach(team => {
+    div.innerHTML += `
+      <div class="team">
+        <strong>Team ${team.id}</strong><br>
+        ${team.players.map(p => p.name).join("<br>")}
+      </div>
+    `;
+  });
+}
+
+function renderMatches() {
+  const div = document.getElementById("matches");
+  div.innerHTML = "";
+
+  currentMatches.forEach((m, i) => {
     div.innerHTML += `
       <div>
         Team ${m[0].id} vs Team ${m[1].id}
-        <input id="a${i}" type="number" value="21" style="width:50px">
+        <input id="a${i}" type="number" value="21">
         :
-        <input id="b${i}" type="number" value="18" style="width:50px">
+        <input id="b${i}" type="number" value="18">
         <button onclick="finishMatch(${i})">Save</button>
       </div>
     `;
   });
-
-  window.currentMatches = matches;
-}
-
-function finishMatch(i) {
-  const [teamA, teamB] = currentMatches[i];
-  const scoreA = Number(document.getElementById(`a${i}`).value);
-  const scoreB = Number(document.getElementById(`b${i}`).value);
-
-  let starsA = 0, starsB = 0;
-  if (scoreA > scoreB) starsA = 2;
-  else if (scoreA < scoreB) starsB = 2;
-  else starsA = starsB = 1;
-
-  teamA.players.forEach(p => {
-    p.stars += starsA;
-    p.pointDiff += scoreA - scoreB;
-    p.gamesPlayed++;
-  });
-
-  teamB.players.forEach(p => {
-    p.stars += starsB;
-    p.pointDiff += scoreB - scoreA;
-    p.gamesPlayed++;
-  });
-
-  renderStandings();
 }
 
 function renderStandings() {
   const div = document.getElementById("standings");
+
   const sorted = [...players].sort(
     (a, b) => b.stars - a.stars || b.pointDiff - a.pointDiff
   );
@@ -111,4 +114,30 @@ function renderStandings() {
       `).join("")}
     </table>
   `;
+}
+
+/* ---------- Match Result ---------- */
+function finishMatch(i) {
+  const [teamA, teamB] = currentMatches[i];
+  const scoreA = Number(document.getElementById(`a${i}`).value);
+  const scoreB = Number(document.getElementById(`b${i}`).value);
+
+  let starsA = 0, starsB = 0;
+  if (scoreA > scoreB) starsA = 2;
+  else if (scoreB > scoreA) starsB = 2;
+  else starsA = starsB = 1;
+
+  teamA.players.forEach(p => {
+    p.stars += starsA;
+    p.pointDiff += scoreA - scoreB;
+    p.gamesPlayed++;
+  });
+
+  teamB.players.forEach(p => {
+    p.stars += starsB;
+    p.pointDiff += scoreB - scoreA;
+    p.gamesPlayed++;
+  });
+
+  renderStandings();
 }
