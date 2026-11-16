@@ -1,0 +1,14 @@
+{
+  "name": "volleyball-tournament",
+  "version": "1.0.0",
+  "description": "Volleyball tournament runner website",
+  "main": "app.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "volleyball",
+    "tournament"
+  ],
+  "license": "ISC"
+}

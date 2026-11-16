@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Volleyball Tournament</title>
+  <title>Volleyball-Turnier</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,56 +11,146 @@
 
   <img src="bear-logo.jpg" class="logo" alt="Logo" />
 
-  <h1 id="pageTitle">Register Players</h1>
+  <h1 id="pageTitle">Spieler registrieren</h1>
 
   <!-- Player Registration -->
   <div id="playerRegistration">
     <div id="playerList"></div>
-    <button onclick="addPlayer()">Add Player</button>
-    <button onclick="startTournament()">Start Tournament</button>
+    <button onclick="addPlayer()">Spieler hinzufügen</button>
+    <button onclick="startTournament()">Turnier starten</button>
+  </div>
+
+  <!-- Round Indicator -->
+  <div id="roundIndicatorContainer" style="display:none; text-align: center; margin: 10px 0;">
+    <div id="roundIndicator" class="round-indicator">Spielrunde: <span id="roundNumber">0</span></div>
   </div>
 
   <!-- Tournament Controls -->
   <div id="tournamentControls" style="display:none;">
-    <button onclick="startRound()">Start New Round</button>
-    <button onclick="toggleStandings()">Toggle Standings</button>
+    <button onclick="startRound()">Neue Runde starten</button>
+    <button onclick="openAddPlayerModal()">Spieler hinzufügen</button>
+    <button onclick="openRemovePlayerModal()">Spieler entfernen</button>
+    <button onclick="startEvaluation()" style="background: #2E8B57;">Siegerehrung</button>
+    <button onclick="openResetModal()" style="background: #B22222;">Turnier zurücksetzen</button>
   </div>
 
   <h2 id="teamsTitle" style="display:none;">Teams</h2>
   <div id="teams"></div>
 
-  <h2 id="matchesTitle" style="display:none;">Matches</h2>
+  <h2 id="matchesTitle" style="display:none;">Begegnungen</h2>
   <div id="matches"></div>
 
-  <button id="saveAllButton" style="display:none;" onclick="saveAllMatches()">Save All Matches</button>
+  <button id="saveAllButton" style="display:none;" onclick="saveAllMatches()">Alle Spiele speichern</button>
 
   <div id="standings" style="display:none;"></div>
+
+  <!-- Evaluation View -->
+  <div id="evaluationView" style="display:none;">
+    <!-- Evaluation Intro / Start Screen -->
+    <div id="evaluationStartScreen" style="display:none; text-align: center; padding: 20px 10px;">
+      <h2>🎉 Turnierauswertung & Siegerehrung</h2>
+      <p style="font-size: 18px; margin: 15px 0;">
+        Bereit für die Siegerehrung? Die Platzierungen werden nacheinander vom letzten Platz bis zum Turniersieger enthüllt!
+      </p>
+      <div class="evaluation-controls" style="margin-top: 25px;">
+        <button onclick="beginSpotlightPresentation()" style="background: #2E8B57; font-size: 20px; padding: 15px 30px;">▶ Siegerehrung starten</button>
+        <button onclick="showFinalStandingsTable()">Gesamttabelle anzeigen</button>
+        <button onclick="exitEvaluation()">Zurück zum Turnier</button>
+      </div>
+    </div>
+
+    <!-- Single Player Spotlight View -->
+    <div id="evaluationSpotlight" style="display:none;">
+      <div class="spotlight-container">
+        <div class="spotlight-card" id="spotlightCard"></div>
+      </div>
+      <div class="evaluation-controls">
+        <button id="prevSpotlightBtn" onclick="prevEvaluationPlayer()">← Zurück</button>
+        <button id="nextSpotlightBtn" onclick="nextEvaluationPlayer()">Nächster Spieler →</button>
+        <button onclick="showFinalStandingsTable()">Gesamttabelle anzeigen</button>
+        <button onclick="exitEvaluation()">Zurück zum Turnier</button>
+      </div>
+    </div>
+
+    <!-- Final Full Tabular View (1st place at the top) -->
+    <div id="evaluationTableContainer" style="display:none;">
+      <h2>Gesamtergebnis / Endstand</h2>
+      <div id="finalStandingsTable"></div>
+      <div class="evaluation-controls" style="margin-top: 15px;">
+        <button onclick="restartEvaluation()">Siegerehrung wiederholen</button>
+        <button onclick="exitEvaluation()">Zurück zum Turnier</button>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <!-- Confirmation Modal -->
 <div id="confirmModal" class="modal" style="display:none;">
   <div class="modal-content">
-    <h2>Confirm Round Results</h2>
+    <h2>Ergebnisse der Runde bestätigen</h2>
     <div id="confirmDetails"></div>
-    <button onclick="confirmSaveAll()">Confirm</button>
-    <button onclick="discardSaveAll()">Discard</button>
+    <button onclick="confirmSaveAll()">Bestätigen</button>
+    <button onclick="discardSaveAll()">Verwerfen</button>
   </div>
 </div>
 
 <!-- Start Round Confirmation Modal -->
 <div id="startRoundModal" class="modal" style="display:none;">
   <div class="modal-content">
-    <h2>Start New Round?</h2>
-    <button onclick="confirmStartRound()">Yes</button>
-    <button onclick="cancelStartRound()">No</button>
+    <h2>Neue Runde starten?</h2>
+    <p style="margin: 10px 0;">Die Teams werden für die neue Runde neu und ausgeglichen zusammengestellt.</p>
+    <button onclick="confirmStartRound()">Ja</button>
+    <button onclick="cancelStartRound()">Nein</button>
   </div>
 </div>
+
+<!-- Add Player During Tournament Modal -->
+<div id="addPlayerModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2>Spieler zum Turnier hinzufügen</h2>
+    <div style="margin: 10px 0; display: flex; flex-direction: column; gap: 10px;">
+      <input id="newPlayerName" placeholder="Spielername" />
+      <select id="newPlayerGender">
+        <option value="M">Mann</option>
+        <option value="F">Frau</option>
+      </select>
+    </div>
+    <button onclick="confirmAddPlayer()">Hinzufügen</button>
+    <button onclick="closeAddPlayerModal()">Abbrechen</button>
+  </div>
+</div>
+
+<!-- Remove Player During Tournament Modal -->
+<div id="removePlayerModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2>Spieler aus dem Turnier entfernen</h2>
+    <div style="margin: 10px 0;">
+      <label for="removePlayerSelect" style="display: block; margin-bottom: 5px; font-weight: bold;">Spieler zum Entfernen auswählen:</label>
+      <select id="removePlayerSelect" style="width: 100%;"></select>
+    </div>
+    <button onclick="confirmRemovePlayer()">Entfernen</button>
+    <button onclick="closeRemovePlayerModal()">Abbrechen</button>
+  </div>
+</div>
+
+<!-- Reset Tournament Confirmation Modal -->
+<div id="resetModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2>Turnier zurücksetzen?</h2>
+    <p style="margin: 15px 0;">Möchten Sie das Turnier wirklich zurücksetzen? Alle Spielstände und Ergebnisse werden aus dem Speicher gelöscht.</p>
+    <button onclick="confirmResetTournament()" style="background: #B22222;">Ja, alles zurücksetzen</button>
+    <button onclick="closeResetModal()">Abbrechen</button>
+  </div>
+</div>
+
 <script src="app.js"></script>
 <script>
-
-  // Initialize 10 default player rows
-  for(let i=0; i<10; i++) addPlayer();
+  // Attempt to restore saved tournament state from localStorage; otherwise initialize 10 player rows
+  const restored = loadTournamentState();
+  if (!restored) {
+    for (let i = 0; i < 10; i++) addPlayer();
+  }
 </script>
 
 </body>

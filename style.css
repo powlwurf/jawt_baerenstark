@@ -1,4 +1,3 @@
-
 /* --- Body and container --- */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -45,6 +44,49 @@ button:hover {
   background: #104E8B;
 }
 
+/* --- Round Indicator --- */
+.round-indicator {
+  display: inline-block;
+  background: #003366;
+  color: #FFF8DC;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 8px 20px;
+  border-radius: 20px;
+  margin: 10px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  letter-spacing: 0.5px;
+}
+
+/* --- Tournament Controls (All 5 buttons in one single row) --- */
+#tournamentControls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 8px;
+  margin: 15px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#tournamentControls button {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 6px;
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  white-space: normal;
+  border-radius: 6px;
+}
+
 /* --- Player rows and matches --- */
 .player-row, .match {
   margin: 5px 0;
@@ -53,12 +95,19 @@ button:hover {
   gap: 5px;
 }
 
-input {
+input, select {
   padding: 10px;
   font-size: 16px;
   text-align: center;
   flex: 1 1 60px;
   min-width: 50px;
+  box-sizing: border-box;
+}
+
+select {
+  border-radius: 5px;
+  border: 1px solid #1E90FF;
+  background: white;
 }
 
 /* --- Teams --- */
@@ -73,6 +122,11 @@ input {
   width: 45%;
   min-width: 160px;
   box-sizing: border-box;
+}
+
+.team span.player-num {
+  color: #000000;
+  font-weight: 600;
 }
 
 .team span.men {
@@ -122,17 +176,139 @@ th, td {
   font-size: 16px;
 }
 
+/* --- Evaluation View (Spotlight Single Player & Final Standings) --- */
+.spotlight-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto 10px;
+  width: 100%;
+}
+
+.spotlight-card {
+  background: #FFFDF0;
+  border: 3px solid #1E90FF;
+  border-radius: 14px;
+  padding: 30px 20px;
+  text-align: center;
+  width: 92%;
+  max-width: 520px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  animation: spotlightFadeIn 0.35s ease-out;
+  box-sizing: border-box;
+}
+
+@keyframes spotlightFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.spotlight-card.award-first {
+  background: linear-gradient(135deg, #FFFDF0 0%, #FFF3CD 100%);
+  border: 4px solid #FFD700;
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.45);
+}
+
+.spotlight-card.award-last {
+  background: linear-gradient(135deg, #FFFDF0 0%, #FFE6E6 100%);
+  border: 4px solid #FF6347;
+  box-shadow: 0 10px 30px rgba(255, 99, 71, 0.3);
+}
+
+.spotlight-badge-container {
+  font-size: 50px;
+  min-height: 55px;
+  margin-bottom: 5px;
+}
+
+.spotlight-rank {
+  font-size: 26px;
+  font-weight: 800;
+  color: #003366;
+  margin-bottom: 8px;
+}
+
+.spotlight-name {
+  font-size: 38px;
+  font-weight: 900;
+  margin: 12px 0;
+  word-break: break-word;
+}
+
+.spotlight-score-box {
+  background: #FFFFCC;
+  border: 1px solid #1E90FF;
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin: 15px auto 8px;
+  display: inline-block;
+  font-size: 22px;
+  font-weight: 700;
+  color: #003366;
+}
+
+.spotlight-award-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-top: 12px;
+}
+
+.spotlight-award-title.trophy {
+  color: #B8860B;
+}
+
+.spotlight-award-title.lantern {
+  color: #DC143C;
+}
+
+.evaluation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.trophy-badge {
+  color: #B8860B;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+}
+
+.lantern-badge {
+  color: #DC143C;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: bold;
+}
+
 /* --- Responsive adjustments --- */
 @media (max-width: 768px) {
   .team {
     width: 100%; /* Stack teams vertically on smaller screens */
   }
 
-  input {
+  input, select {
     flex: 1 1 100%; /* inputs full width on small screens */
   }
 
   button {
-    width: 100%; /* buttons full width for touch */
+    width: 100%; /* other buttons full width for touch */
+  }
+
+  /* Keep all 5 tournament buttons in one row on mobile */
+  #tournamentControls {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  #tournamentControls button {
+    width: auto;
+    font-size: 11px;
+    padding: 8px 3px;
   }
 }
